@@ -71,7 +71,6 @@ idf.py set-target esp32
 
 ```
 idf.py menuconfig
-
 ```
 
 * enale bluetooth in **Component config > Bluetooth**

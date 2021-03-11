@@ -11,6 +11,7 @@ Project based on the [ESP-IDF SKD](https://github.com/espressif/esp-idf).
 # Building and flashing
 
 ESP-IDF uses a CMake-based build system.
+
 Namely:
 
 * CMake to configure project and its components

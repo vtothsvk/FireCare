@@ -18,7 +18,7 @@ Namely:
 * A command line build tool (either Ninja build or GNU Make)
 * The espressif comand line tool, [esptool.py](https://github.com/espressif/esptool/#readme), for flashing the target
 
-ESP-IDF provides its own comand line tool front-end tool to manage these stages of project development - idf.py
+ESP-IDF provides its own comand line front-end tool to manage these stages of project development - idf.py
 
 More info: [ESP-IDF build system](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html)
 

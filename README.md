@@ -21,7 +21,7 @@ ESP-IDF provides its own comand line tool front-end tool to manage these stages 
 
 More info: [ESP-IDF build system](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html)
 
-## Building using cmake and ninja
+## Building using CMake and Ninja
 
 1. Configure using cmake
 

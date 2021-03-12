@@ -4,7 +4,7 @@ include_directories(components/)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 if(ADV_INTERVAL)
-add_compile_definitions(ADV_INTERVAL)
+add_compile_definitions(ADV_INTERVAL=${ADV_INTERVAL})
 endif()
 
 if(PROV_BLE)

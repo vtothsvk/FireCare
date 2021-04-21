@@ -131,7 +131,7 @@ esp_err_t wifiConnect() {
     return ESP_FAIL;
 }//wifiConnect
 
-esp_err_t wifiProvisioning() {
+esp_err_t wifiProvisioning(void) {
     wifi_event_group = xEventGroupCreate();
 
 #ifndef PROV_BLE
@@ -184,9 +184,12 @@ esp_err_t wifiProvisioning() {
 
     //optional endpoint for custom data 
     wifi_prov_mgr_endpoint_create("custom-data");
-        
+    
+    char apName[16];
+    generateName(apName);
+
     //start provisioning
-    ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(security, pop, "bleSniffer", service_key));
+    ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(security, pop, apName, service_key));
 
     //register custom endpoint
     wifi_prov_mgr_endpoint_register("custom-data", custom_prov_data_handler, NULL);
@@ -258,3 +261,12 @@ void syncTime(void){
 
     printf("epoch: %ld\r\n", (long)now);
 }//synch time
+
+void generateName(char* name) {
+    sprintf(name, "niceAp-");
+    uint8_t index = strlen("niceAp-");
+    name[index++] = SN[8];
+    name[index++] = "-";
+    name[index++] = SN[14];
+    name[index++] = SN[15];
+}//generateName

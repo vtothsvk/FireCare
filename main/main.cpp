@@ -4,10 +4,15 @@ extern "C" {
     void app_main(void);
 }
 
+char devName[16];
+
 void app_main(void) {
     boot();
     initLed();
     blink();
+
+    generateName(devName);
+    printf("%s\r\n", devName);
 
     wifiInit();
     if (firstBoot()){

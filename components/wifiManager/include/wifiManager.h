@@ -14,6 +14,8 @@
 #include "esp_sntp.h"
 #include <esp_event.h>
 
+#include "authCredentials.h"
+
 #include <wifi_provisioning/manager.h>
 #ifdef PROV_BLE
 #include <wifi_provisioning/scheme_ble.h>
@@ -40,6 +42,7 @@ esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t *inbuf, ss
 esp_err_t getRSSI(int8_t* rssi);
 
 void syncTime(void);
+void generateName(char* name);
 
 #ifdef __cplusplus
 }

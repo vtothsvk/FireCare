@@ -2,7 +2,7 @@
 #define newAuth_h
 
 //#include <M5StickC.h>
-#include <cstring>
+#include "string.h"
 #include "mbedtls/md.h"
 #include "mbedtls/ecdsa.h"
 #include "mbedtls/ecp.h"

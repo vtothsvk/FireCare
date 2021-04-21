@@ -31,7 +31,8 @@ extern "C" {
 
 #define ESP_MAXIMUM_RETRY  10
 
-esp_err_t runWifiManager(void);
+esp_err_t wifiInit(void);
+esp_err_t wifiDisconnect(void);
 esp_err_t wifiConnect(void);
 esp_err_t wifiProvisioning(void);
 esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t *inbuf, ssize_t inlen,

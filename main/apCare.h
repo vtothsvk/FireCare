@@ -11,9 +11,9 @@ extern "C" {
 
 #define uS_TO_S_FACTOR 1000000
 
-#ifndef ADV_INTERVAL
+//#ifndef ADV_INTERVAL
 #define ADV_INTERVAL 300
-#endif
+//#endif
 
 #define POST_ENDPOINT           "https://fei.edu.r-das.sk:51415/api/v1/Auth"
 
@@ -28,11 +28,13 @@ extern "C" {
 #define TOUCH_THRESHOLD     1000
 #define TOUCHPAD            TOUCH_PAD_NUM7
 
-#ifndef SENSOR_PIN
-//#define SENSOR_PIN 39
-#endif
+//#ifndef SENSOR_PIN
+#define SENSOR_PIN 39
+//#endif
 
 #define BUTTON_PIN_BITMASK 0x8000000000
+
+#define LED_PIN GPIO_NUM_2
 
 typedef struct data_buffer{
     union{
@@ -60,7 +62,8 @@ void sensorInit(void);
 
 esp_err_t initButton(void);
 
-
+void initLed(void);
+void blink(void);
 
 #ifdef __cplusplus
 }

@@ -4,6 +4,7 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
 static void wifi_init_sta(void);
 static EventGroupHandle_t wifi_event_group;
 static int s_retry_num = 0;
+static bool voluntaryDisconnect = false;
 
 static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
     if (event_base == WIFI_PROV_EVENT) {
@@ -51,8 +52,12 @@ static void event_handler(void* arg, esp_event_base_t event_base, int32_t event_
             esp_wifi_connect();
         } else {
             ESP_LOGI(WIFI_MANAGER_TAG, "Connection failed....");
-            //nvs_flash_init();
-            //nvs_flash_erase();
+            /*if (!voluntaryDisconnect) {
+                nvs_flash_init();
+                nvs_flash_erase();
+            }*/
+
+            voluntaryDisconnect = false;
         }
     }
 }//event handler
@@ -63,12 +68,7 @@ static void wifi_init_sta(void){
     ESP_ERROR_CHECK(esp_wifi_start());
 }
 
-esp_err_t runWifiManager() {
-    return ESP_OK;
-}
-
-esp_err_t wifiConnect() {
-    /* Initialize NVS partition */
+esp_err_t wifiInit() {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         /* NVS partition was truncated
@@ -79,55 +79,11 @@ esp_err_t wifiConnect() {
         ESP_ERROR_CHECK(nvs_flash_init());
     }
 
-    /* Initialize TCP/IP */
     ESP_ERROR_CHECK(esp_netif_init());
 
     /* Initialize the event loop */
     esp_event_loop_delete_default();
     ESP_ERROR_CHECK(esp_event_loop_create_default());
-    wifi_event_group = xEventGroupCreate();
-
-    /* Register event handler for Wi-Fi and IP events */
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
-    ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
-
-    //init netif with default config
-    esp_netif_create_default_wifi_sta();
-    //esp_netif_create_default_wifi_ap();
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-
-    //wifi sta connect
-    wifi_init_sta();
-
-    //wait for connection
-    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, false, true, 20 * 1000 / portTICK_RATE_MS);
-
-    //clean up
-    vEventGroupDelete(wifi_event_group);
-
-    return ret;
-}//wifiConnect
-
-esp_err_t wifiProvisioning() {
-    /* Initialize NVS partition */
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        /* NVS partition was truncated
-         * and needs to be erased */
-        ESP_ERROR_CHECK(nvs_flash_erase());
-
-        /* Retry nvs_flash_init */
-        ESP_ERROR_CHECK(nvs_flash_init());
-    }
-
-    /* Initialize TCP/IP */
-    ESP_ERROR_CHECK(esp_netif_init());
-
-    /* Initialize the event loop */
-    esp_event_loop_delete_default();
-    ESP_ERROR_CHECK(esp_event_loop_create_default());
-    wifi_event_group = xEventGroupCreate();
 
     /* Register our event handler for Wi-Fi, IP and Provisioning related events */
     ESP_ERROR_CHECK(esp_event_handler_register(WIFI_PROV_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
@@ -136,6 +92,48 @@ esp_err_t wifiProvisioning() {
 
     //init netif with default config
     esp_netif_create_default_wifi_sta();
+
+    
+    return ESP_OK;
+}
+
+esp_err_t wifiDisconnect() {
+    voluntaryDisconnect = true;
+
+    esp_err_t ret = esp_wifi_disconnect();
+    if (ret) return ret;
+
+    ret = esp_wifi_stop();
+    if (ret) return ret;
+
+    return esp_wifi_deinit();
+}
+
+esp_err_t wifiConnect() {
+    wifi_event_group = xEventGroupCreate();
+
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+
+    //wifi sta connect
+    wifi_init_sta();
+
+    //wait for connection
+    EventBits_t bits = xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, false, true, 60 * 1000 / portTICK_RATE_MS);
+
+    //clean up
+    vEventGroupDelete(wifi_event_group);
+
+    if (bits & WIFI_CONNECTED_EVENT) {
+        return ESP_OK;
+    }
+
+    return ESP_FAIL;
+}//wifiConnect
+
+esp_err_t wifiProvisioning() {
+    wifi_event_group = xEventGroupCreate();
+
 #ifndef PROV_BLE
     esp_netif_create_default_wifi_ap();
 #endif
@@ -157,13 +155,14 @@ esp_err_t wifiProvisioning() {
     //init provis. manager
     ESP_ERROR_CHECK(wifi_prov_mgr_init(config));
 
-    //bool provisioned = false;
+    bool provisioned = false;
     //check if provisioned
-    //ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
+    ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
 
-    ESP_LOGI(WIFI_MANAGER_TAG, "Starting provisioning");
+    if (!provisioned) {
+        ESP_LOGI(WIFI_MANAGER_TAG, "Starting provisioning");
 
-    /* generate device name */
+    //todo generate device name
 
     //security level
     wifi_prov_security_t security = WIFI_PROV_SECURITY_1;
@@ -187,16 +186,21 @@ esp_err_t wifiProvisioning() {
     wifi_prov_mgr_endpoint_create("custom-data");
         
     //start provisioning
-    ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(security, pop, "PROV_DOOR", service_key));
+    ESP_ERROR_CHECK(wifi_prov_mgr_start_provisioning(security, pop, "bleSniffer", service_key));
 
     //register custom endpoint
     wifi_prov_mgr_endpoint_register("custom-data", custom_prov_data_handler, NULL);
 
     //wait for connection
-    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, false, true, 60 * 1000 / portTICK_RATE_MS);
+    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_EVENT, false, true, 300 * 1000 / portTICK_RATE_MS);
 
     //clean up
     vEventGroupDelete(wifi_event_group);
+    } else {
+        wifi_prov_mgr_deinit();
+
+        wifi_init_sta();
+    }
 
     return ESP_OK;
 }

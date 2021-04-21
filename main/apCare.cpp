@@ -195,7 +195,7 @@ esp_err_t dataAdvertisement() {
 }//data advertisement
 
 void goToSleep() {
-    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ALL_LOW);
     esp_sleep_enable_timer_wakeup(ADV_INTERVAL * uS_TO_S_FACTOR);
     esp_deep_sleep_start();
 }
@@ -214,3 +214,17 @@ esp_err_t initButton() {
 
     return ret;
 }//initButton
+
+void initLed(void) {
+    gpio_reset_pin(LED_PIN);
+    gpio_set_direction(LED_PIN, GPIO_MODE_OUTPUT);
+}
+
+void blink(void) {
+    for (uint8_t i = 0; i < 3; i++) {
+        gpio_set_level(LED_PIN, true);
+        vTaskDelay(100 / portTICK_RATE_MS);
+        gpio_set_level(LED_PIN, false);
+        vTaskDelay(100 / portTICK_RATE_MS);
+    }
+}

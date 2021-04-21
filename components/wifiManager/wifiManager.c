@@ -185,7 +185,7 @@ esp_err_t wifiProvisioning(void) {
     //optional endpoint for custom data 
     wifi_prov_mgr_endpoint_create("custom-data");
     
-    char apName[16];
+    char apName[20];
     generateName(apName);
 
     //start provisioning
@@ -263,10 +263,10 @@ void syncTime(void){
 }//synch time
 
 void generateName(char* name) {
-    sprintf(name, "niceAp-");
-    uint8_t index = strlen("niceAp-");
+    sprintf(name, "niceAp-door-");
+    uint8_t index = strlen("niceAp-door-");
     name[index++] = SN[8];
-    name[index++] = "-";
+    name[index++] = '-';
     name[index++] = SN[14];
     name[index++] = SN[15];
 }//generateName

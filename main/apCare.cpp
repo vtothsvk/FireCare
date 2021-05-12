@@ -229,6 +229,7 @@ esp_err_t dataAdvertisement() {
 
     esp_http_client_config_t config = {
         .url = POST_ENDPOINT,
+        .auth_type = HTTP_AUTH_TYPE_NONE,
         .cert_pem = ssl_cert,
         .event_handler = http_event_handler
     };
@@ -243,7 +244,8 @@ esp_err_t dataAdvertisement() {
 
     printf("jwt:\r\n%s\r\n", jwt);
 
-    esp_http_client_set_header(client, "Authorization", jwt);
+    esp_http_client_delete_header(client, HTTP_HEADER_AUTHORISATION);
+    esp_http_client_set_header(client, HTTP_HEADER_AUTHORISATION, jwt);
 
     esp_http_client_set_post_field(client, my_json_string, strlen(my_json_string));
 

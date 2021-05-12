@@ -4,7 +4,7 @@ extern "C" {
     void app_main(void);
 }
 
-void app_main(void) {
+void app_main(void) {    
     boot();
     initLed();
     blink();

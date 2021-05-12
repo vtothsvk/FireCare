@@ -18,6 +18,7 @@
 #include "freertos/event_groups.h"
 //Drivers
 #include "driver/gpio.h"
+#include "driver/adc.h"
 #include "driver/rtc_io.h"
 #include "driver/touch_pad.h"
 //WiFi & HTTP client

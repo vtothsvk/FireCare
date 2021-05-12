@@ -7,6 +7,8 @@ RTC_DATA_ATTR int lastAdv = 1;
 RTC_DATA_ATTR bool needSyncFlag = true;
 time_t epoch = 0;
 
+static const adc_bits_width_t width = ADC_WIDTH_BIT_12; 
+
 const char* TAG = "apCare";
 
 const char ssl_cert[] =
@@ -152,7 +154,7 @@ esp_err_t dataAdvertisement() {
     cJSON *root;
 	root = cJSON_CreateObject();
 
-    cJSON *data[bootcount - lastAdv];
+    cJSON *data[bootcount - lastAdv + 1];
     for(uint8_t i = 0; i < bootcount - lastAdv; i++){
         data_buffer_t advData;
         cJSON *event[1];
@@ -183,10 +185,43 @@ esp_err_t dataAdvertisement() {
         cJSON_AddStringToObject(data[i], "DeviceId", myId);
     }//for(uint8_t i = 0; i < bootcount - lastAdv; i++)
 
-    //cJSON *root;
-    root = Create_array_of_anything(data, bootcount - lastAdv);
+    uint8_t index = bootcount - lastAdv;
 
-    //cJSON_AddItemToObject(root, "Data", array);
+    data[index] = cJSON_CreateObject();
+    cJSON *event[2];
+    cJSON *array;
+    time_t epoch;
+    time(&epoch);
+
+    cJSON_AddStringToObject(data[index], "LoggerName", "SysInfo");
+    cJSON_AddNumberToObject(data[index], "Timestamp", (unsigned long)epoch);
+
+    event[0] = cJSON_CreateObject();
+
+    batteryInit();
+
+    cJSON_AddStringToObject(event[0], "Name", "bat_v");
+    cJSON_AddNumberToObject(event[0], "Value", batteryRead());
+
+    event[1] = cJSON_CreateObject();
+
+    wifi_ap_record_t stats;
+    esp_wifi_sta_get_ap_info(&stats);
+
+    cJSON_AddStringToObject(event[1], "Name", "wifi_rssi");
+    cJSON_AddNumberToObject(event[1], "Value", stats.rssi);
+
+    array = Create_array_of_anything(event, 2);
+    //cJSON *root;
+
+    cJSON_AddItemToObject(data[index], "MeasuredData", array);
+    cJSON_AddArrayToObject(data[index], "ServiceData");
+    cJSON_AddArrayToObject(data[index], "DebugData");
+
+    cJSON_AddStringToObject(data[index], "DeviceId", myId);
+    
+    root = Create_array_of_anything(data, bootcount - lastAdv + 1);
+
     const char *my_json_string = cJSON_Print(root);
 	//ESP_LOGI(TAG, "my_json_string\n%s", my_json_string);
     printf("\r\n%s\r\n", my_json_string);
@@ -233,6 +268,21 @@ void goToSleep() {
 void initBuffer(){
     circularBufferInit(dataBuffer, sizeof(dataBuffer), &cBuffer);
 }//buffer init
+
+esp_err_t batteryInit() {
+    gpio_num_t adc_gpio;
+
+    esp_err_t ret = adc1_pad_get_io_num(ADC_GPIO, &adc_gpio);
+    if (ret) return ret;
+
+    vTaskDelay(2 / portTICK_RATE_MS);
+
+    return ret;
+}//batteryInit
+
+esp_err_t batteryRead() {
+    return adc1_get_raw(ADC_GPIO);
+}//adcRead
 
 esp_err_t initButton() {
     esp_err_t ret = touch_pad_init();

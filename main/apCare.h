@@ -36,6 +36,8 @@ extern "C" {
 
 #define LED_PIN GPIO_NUM_2
 
+#define ADC_GPIO ADC1_CHANNEL_0
+
 typedef struct data_buffer{
     union{
         struct{
@@ -60,6 +62,8 @@ void goToSleep(void);
 void initBuffer(void);
 void sensorInit(void);
 
+esp_err_t batteryInit(void);
+int batteryRead(void);
 esp_err_t initButton(void);
 
 void initLed(void);

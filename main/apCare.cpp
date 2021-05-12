@@ -227,9 +227,9 @@ esp_err_t dataAdvertisement() {
     cJSON_AddStringToObject(root, "sn", SN);
     cJSON_AddStringToObject(root, "kid", kid);
     cJSON_AddItemToObject(root, "body", body);
-    cJSON_AddStringToObject(root, "devId", devId);
+    cJSON_AddStringToObject(root, "devId", myId);
     cJSON_AddNumberToObject(root, "includeTS", 0);
-    cJSON_AddStringToObject(root, "plen", index + 1);
+    cJSON_AddNumberToObject(root, "plen", index + 1);
 
     const char *my_json_string = cJSON_Print(root);
 	//ESP_LOGI(TAG, "my_json_string\n%s", my_json_string);

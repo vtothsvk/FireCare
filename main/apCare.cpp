@@ -152,7 +152,9 @@ esp_err_t dataUpdate() {
 
 esp_err_t dataAdvertisement() {
     cJSON *root;
-	root = cJSON_CreateObject();
+    cJSON *body;
+    root = cJSON_CreateObject();
+	body = cJSON_CreateObject();
 
     cJSON *data[bootcount - lastAdv + 1];
     for(uint8_t i = 0; i < bootcount - lastAdv; i++){
@@ -220,7 +222,14 @@ esp_err_t dataAdvertisement() {
 
     cJSON_AddStringToObject(data[index], "DeviceId", myId);
     
-    root = Create_array_of_anything(data, bootcount - lastAdv + 1);
+    body = Create_array_of_anything(data, bootcount - lastAdv + 1);
+
+    cJSON_AddStringToObject(root, "sn", SN);
+    cJSON_AddStringToObject(root, "kid", kid);
+    cJSON_AddItemToObject(root, "body", body);
+    cJSON_AddStringToObject(root, "devId", devId);
+    cJSON_AddNumberToObject(root, "includeTS", 0);
+    cJSON_AddStringToObject(root, "plen", index + 1);
 
     const char *my_json_string = cJSON_Print(root);
 	//ESP_LOGI(TAG, "my_json_string\n%s", my_json_string);
@@ -229,8 +238,6 @@ esp_err_t dataAdvertisement() {
 
     esp_http_client_config_t config = {
         .url = POST_ENDPOINT,
-        .auth_type = HTTP_AUTH_TYPE_NONE,
-        .cert_pem = ssl_cert,
         .event_handler = http_event_handler
     };
 
@@ -238,6 +245,7 @@ esp_err_t dataAdvertisement() {
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
 
+    /*
     char jwt[500] = "Bearer ";
     size_t jlen = strlen(jwt);
     auth.createJWT((uint8_t*)jwt + jlen, sizeof(jwt) - jlen, &jlen, (long)epoch);
@@ -246,6 +254,7 @@ esp_err_t dataAdvertisement() {
 
     esp_http_client_delete_header(client, HTTP_HEADER_AUTHORISATION);
     esp_http_client_set_header(client, HTTP_HEADER_AUTHORISATION, jwt);
+    */
 
     esp_http_client_set_post_field(client, my_json_string, strlen(my_json_string));
 

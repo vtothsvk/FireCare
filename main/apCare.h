@@ -15,7 +15,7 @@ extern "C" {
 #define ADV_INTERVAL 300
 //#endif
 #define HTTP_HEADER_AUTHORISATION   "Authorization"
-#define POST_ENDPOINT               "https://fei.edu.r-das.sk:51415/api/v1/Auth"
+#define POST_ENDPOINT               "https://192.168.2.6:51415/api/v1/Auth"
 
 #define BUFFER_SIZE     500
 

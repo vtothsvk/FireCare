@@ -15,7 +15,7 @@ extern "C" {
 #define ADV_INTERVAL 300
 //#endif
 #define HTTP_HEADER_AUTHORISATION   "Authorization"
-#define POST_ENDPOINT               "https://192.168.2.6:51415/api/v1/Auth"
+#define POST_ENDPOINT               "http://192.168.2.7:1880/niceBridge"
 
 #define BUFFER_SIZE     500
 
